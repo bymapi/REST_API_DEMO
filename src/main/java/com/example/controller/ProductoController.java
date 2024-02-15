@@ -1,5 +1,6 @@
 package com.example.controller;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -187,6 +188,45 @@ public class ProductoController {
 
     }
     
+
+    // Método que recupera un producto por el id
+    @GetMapping("/{id}")
+    public ResponseEntity<Map<String,Object>> findProductById(@PathVariable(name = "id",
+                required = true) Integer idProducto) throws IOException{
+
+        Map<String,Object> responseAsMap = new HashMap<>();
+        ResponseEntity<Map<String,Object>> responseEntity = null;
+
+        try {
+            Producto producto = productoService.findById(idProducto);
+
+            if (producto != null) {
+
+                String successMessage = "Producto con id " + idProducto + " encontrado";
+                responseAsMap.put("successMessage", successMessage);
+                responseAsMap.put("producto", producto);
+                responseEntity = new ResponseEntity<Map<String,Object>>(responseAsMap, HttpStatus.OK);
+                
+            } else {
+
+                String errorMessage = "Producto con id " + idProducto + " no encontrado";
+                responseAsMap.put("errorMessage", errorMessage);
+                responseEntity = new ResponseEntity<Map<String,Object>>(responseAsMap, HttpStatus.NOT_FOUND);
+                
+            }
+         //   
+        } catch (DataAccessException e) {
+
+            String error = "Se ha producido un error grave al buscar el producto con id " + idProducto +
+            " y la causa más probable es: " + e.getMostSpecificCause();
+
+            responseAsMap.put("error", error);
+            responseEntity = new ResponseEntity<Map<String,Object>>(responseAsMap,HttpStatus.INTERNAL_SERVER_ERROR);
+            
+        }
+
+        return responseEntity;
+    }
 
 
 
