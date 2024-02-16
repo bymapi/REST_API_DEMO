@@ -51,6 +51,8 @@ public class Producto implements Serializable {
     @Min(value = 0, message = "El stock no puede ser menor que cero")
     private int stock;
 
+    private String imagen;
+
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REFRESH)
     // https://stackoverflow.com/questions/67353793/what-does-jsonignorepropertieshibernatelazyinitializer-handler-do
     @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })

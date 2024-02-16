@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,9 +24,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.entities.Producto;
+import com.example.helpers.FileUploadUtil;
+import com.example.model.FileUploadResponse;
 import com.example.services.ProductoService;
 
 import jakarta.validation.Valid;
@@ -37,6 +42,7 @@ import lombok.RequiredArgsConstructor;
 public class ProductoController {
 
     private final ProductoService productoService;
+    private final FileUploadUtil fileUploadUtil;
 
 
 
@@ -82,9 +88,12 @@ public class ProductoController {
     // Método que persiste un producto
     // y valida que el producto esté bien formado
 
-    @PostMapping
-    public ResponseEntity<Map<String,Object>> saveProduct(@Valid @RequestBody Producto producto,
-                            BindingResult validationResults ){
+    @PostMapping(consumes = "multipart/form-data")
+    @Transactional
+    public ResponseEntity<Map<String,Object>> saveProduct(@Valid
+    @RequestPart(name = "producto", required = true) Producto producto,
+                            BindingResult validationResults,
+    @RequestPart(name = "file", required = true) MultipartFile file){
 
         Map<String,Object> responseAsMap = new HashMap<>();
         ResponseEntity<Map<String,Object>> responseEntity = null;
@@ -105,6 +114,38 @@ public class ProductoController {
             return responseEntity;
 
         } 
+
+        // Comprobamos si nos han enviado imagen
+
+        if (file != null) {
+
+            try {
+                String fileName = file.getOriginalFilename();
+                String fileCode = fileUploadUtil.saveFile(file.getOriginalFilename(), file);
+                producto.setImagen(fileCode + "-" + fileName);
+                
+                // Hay que devolver información respecto al archivo que se ha guardado
+                // para lo cual en la capa model vamos a crear un Record con la info del
+                // archivo que queramos devolver
+
+                FileUploadResponse fileUploadResponse = FileUploadResponse
+                .builder()
+                .fileName(fileCode + "-" + file.getOriginalFilename())
+                .downloadURI("/productos/downloadFile/" 
+                          + fileCode + "-" + file.getOriginalFilename())
+                .size(file.getSize())
+                .build();
+     
+        responseAsMap.put("info de la imagen: ", fileUploadResponse);         
+
+            } catch (IOException e) {
+                
+
+                e.printStackTrace();
+            }
+            
+        }
+
         // No hay errores en el producto, pues a persistir el producto
 
         try {
@@ -256,5 +297,6 @@ public class ProductoController {
         return responseEntity;
     }
 
+    // El método para recibir las imágenes se mete dentro del método que persiste un producto (up)
 
 }
