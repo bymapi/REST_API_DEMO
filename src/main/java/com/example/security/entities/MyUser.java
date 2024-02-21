@@ -36,7 +36,7 @@ public class MyUser implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int idUsuario;
-    private String username;
+    private String userName;
     private String password;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = {

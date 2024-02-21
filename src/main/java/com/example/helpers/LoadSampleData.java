@@ -1,4 +1,4 @@
-package com.example.helpers;
+/* package com.example.helpers;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -139,3 +139,4 @@ public class LoadSampleData {
     }
 
 }
+ */
